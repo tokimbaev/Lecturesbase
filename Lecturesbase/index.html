@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LecturesBase - Университетская платформа</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+</head>
+<body>
+    <!-- Шапка с авторизацией -->
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h2>📚 LecturesBase</h2>
+                </div>
+                <ul class="nav-menu" id="nav-menu">
+                    <li><a href="#home">Главная</a></li>
+                    <li id="admin-link" style="display: none;"><a href="#admin">Админ-панель</a></li>
+                    <li id="teacher-link" style="display: none;"><a href="#teacher">Кабинет преподавателя</a></li>
+                    <li id="student-link" style="display: none;"><a href="#student">Мои лекции</a></li>
+                    <li id="login-link"><a href="#login">Войти</a></li>
+                    <li id="logout-link" style="display: none;"><a href="#" id="logout-btn">Выйти</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Главный баннер -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>LecturesBase - База университетских лекций</h1>
+                <p>Все лекции, презентации и учебные материалы в одной системе. Преподаватели загружают — студенты учатся.</p>
+                <div class="hero-buttons">
+                    <a href="#login" class="btn primary">Войти в систему</a>
+                    <a href="#materials" class="btn secondary">Посмотреть материалы</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Демо-режим (пока не настроен Firebase) -->
+        <section class="demo-alert">
+            <div class="container">
+                <div class="demo-info">
+                    <h3>🚀 Демо-режим</h3>
+                    <p>Сайт работает в демо-режиме. Для полной функциональности需要 настроить Firebase.</p>
+                    <div class="demo-accounts">
+                        <p><strong>Тестовые аккаунты:</strong></p>
+                        <ul>
+                            <li>👨‍🎓 Студент: student@lecturesbase.ru / 123456</li>
+                            <li>👨‍🏫 Преподаватель: teacher@lecturesbase.ru / 123456</li>
+                            <li>⚙️ Админ: admin@lecturesbase.ru / 123456</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Форма входа/регистрации -->
+        <section id="login" class="auth-section">
+            <div class="auth-container">
+                <h2>Вход в LecturesBase</h2>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Email" value="student@lecturesbase.ru">
+                    <input type="password" id="login-password" placeholder="Пароль" value="123456">
+                    <button type="submit" class="btn primary">Войти в демо-режим</button>
+                </form>
+                <div id="auth-message">
+                    <p class="demo-info">🔒 В демо-режиме вход работает без Firebase</p>
+                </div>
+                
+                <!-- Админ: создание пользователей -->
+                <div id="admin-panel" style="display: none; margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 10px;">
+                    <h3>Админ-панель: Создать пользователя</h3>
+                    <form id="create-user-form">
+                        <input type="email" id="new-user-email" placeholder="Email пользователя" required>
+                        <input type="password" id="new-user-password" placeholder="Пароль" required>
+                        <select id="new-user-role" required>
+                            <option value="">Выберите роль</option>
+                            <option value="student">Студент</option>
+                            <option value="teacher">Преподаватель</option>
+                        </select>
+                        <input type="text" id="new-user-name" placeholder="ФИО" required>
+                        <input type="text" id="new-user-group" placeholder="Группа (для студентов)">
+                        <button type="submit" class="btn primary">Создать пользователя</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Личный кабинет студента -->
+        <section id="student" class="dashboard-section" style="display: none;">
+            <div class="container">
+                <h2>📖 Мои лекции</h2>
+                <p class="section-subtitle">Доступные учебные материалы для вашей группы</p>
+                <div class="demo-note">
+                    <p>🎯 В демо-режиме показаны примеры материалов. Для реальной работы需要 настроить Firebase.</p>
+                </div>
+                <div class="materials-grid" id="student-materials">
+                    <!-- Лекции будут загружаться здесь -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Кабинет преподавателя -->
+        <section id="teacher" class="dashboard-section" style="display: none;">
+            <div class="container">
+                <h2>👨‍🏫 Кабинет преподавателя</h2>
+                <p class="section-subtitle">Управление учебными материалами</p>
+                
+                <div class="demo-note">
+                    <p>🎯 Демо-режим: загрузка файлов эмулируется. Для реальной загрузки需要 Firebase.</p>
+                </div>
+                
+                <!-- Форма загрузки материалов -->
+                <div class="upload-form">
+                    <h3>📤 Загрузить новый материал</h3>
+                    <form id="upload-material-form">
+                        <div class="form-row">
+                            <input type="text" id="material-title" placeholder="Название лекции/материала" required>
+                            <input type="text" id="material-subject" placeholder="Учебный предмет" required>
+                        </div>
+                        <div class="form-row">
+                            <select id="material-faculty" required>
+                                <option value="">Выберите факультет</option>
+                                <option value="it">Информационные технологии</option>
+                                <option value="economics">Экономика</option>
+                                <option value="law">Юриспруденция</option>
+                            </select>
+                            <select id="material-type" required>
+                                <option value="">Тип материала</option>
+                                <option value="lecture">Лекция</option>
+                                <option value="presentation">Презентация</option>
+                                <option value="methodology">Методичка</option>
+                            </select>
+                        </div>
+                        <textarea id="material-description" placeholder="Описание материала" required></textarea>
+                        <input type="text" id="material-groups" placeholder="Группы (через запятую, например: ИС-21,ИС-22)">
+                        
+                        <!-- Загрузка файла -->
+                        <div class="file-upload">
+                            <label>📎 Выберите файл для загрузки:</label>
+                            <input type="file" id="material-file" required>
+                            <small>В демо-режиме файл не загружается на сервер</small>
+                        </div>
+                        
+                        <button type="submit" class="btn primary">Загрузить в LecturesBase</button>
+                    </form>
+                </div>
+
+                <!-- Мои загруженные материалы -->
+                <div class="my-materials">
+                    <h3>📂 Мои загруженные материалы</h3>
+                    <div class="materials-grid" id="teacher-materials">
+                        <!-- Материалы преподавателя -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Админ-панель -->
+        <section id="admin" class="dashboard-section" style="display: none;">
+            <div class="container">
+                <h2>⚙️ Админ-панель LecturesBase</h2>
+                <p class="section-subtitle">Управление системой и пользователями</p>
+                
+                <div class="demo-note">
+                    <p>🎯 Демо-режим: данные хранятся в localStorage. Для реальной работы需要 Firebase.</p>
+                </div>
+                
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <h3>👥 Пользователи</h3>
+                        <div id="users-count">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>📚 Материалы</h3>
+                        <div id="materials-count">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>🎯 Режим</h3>
+                        <div id="activity-count">Демо</div>
+                    </div>
+                </div>
+                
+                <div class="admin-actions">
+                    <h3>Быстрые действия</h3>
+                    <div class="action-buttons">
+                        <button class="btn primary" onclick="showCreateUserForm()">➕ Создать пользователя</button>
+                        <button class="btn secondary" onclick="exportData()">📊 Экспорт статистики</button>
+                    </div>
+                </div>
+                
+                <div class="users-list">
+                    <h3>Список пользователей системы</h3>
+                    <div id="users-list">
+                        <!-- Список пользователей -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Публичная база материалов -->
+        <section id="materials" class="materials">
+            <div class="container">
+                <h2>📋 База материалов LecturesBase</h2>
+                <p class="section-subtitle">Общедоступные учебные материалы</p>
+                
+                <div class="filters">
+                    <select id="faculty-select">
+                        <option value="">Все факультеты</option>
+                        <option value="it">Информационные технологии</option>
+                        <option value="economics">Экономика</option>
+                        <option value="law">Юриспруденция</option>
+                    </select>
+                    <select id="subject-select">
+                        <option value="">Все предметы</option>
+                        <option value="programming">Программирование</option>
+                        <option value="math">Математика</option>
+                        <option value="economics">Экономика</option>
+                    </select>
+                    <select id="type-select">
+                        <option value="">Все типы</option>
+                        <option value="lecture">Лекции</option>
+                        <option value="presentation">Презентации</option>
+                        <option value="methodology">Методички</option>
+                    </select>
+                    <input type="text" id="search-input" placeholder="Поиск по названию или описанию...">
+                </div>
+                
+                <div class="materials-info">
+                    <span id="materials-count-text">Загружается...</span>
+                </div>
+                
+                <div class="materials-grid" id="public-materials">
+                    <!-- Публичные материалы -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>📚 LecturesBase</h3>
+                    <p>Университетская платформа для обучения</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#home">Главная</a>
+                    <a href="#materials">База материалов</a>
+                    <a href="#login">Вход в систему</a>
+                </div>
+            </div>
+            <p class="footer-copyright">© 2024 LecturesBase. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
